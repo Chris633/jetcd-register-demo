@@ -65,7 +65,6 @@ public class Server2
 	    		myWatch();
 	    	}
 	    	System.out.println("I'm Node2. I'm going to work！");
-	    	Thread.sleep(20L);
 	    	if (kvClient.get(key).get().getCount() != 0 ) continue;
 	    	leaseId =leaseClient.grant(3L).get().getID();
 			kvClient.put(key, value, PutOption.newBuilder().withLeaseId(leaseId).build());
