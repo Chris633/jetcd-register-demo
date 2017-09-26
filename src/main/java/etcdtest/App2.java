@@ -1,4 +1,4 @@
-package etcdtest.etcdtest;
+package etcdtest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,13 +11,12 @@ import com.coreos.jetcd.Lease;
 import com.coreos.jetcd.Watch.Watcher;
 import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.lease.LeaseGrantResponse;
 import com.coreos.jetcd.options.PutOption;
 
-public class App3 
+public class App2 
 {
 	private static ByteSequence key = ByteSequence.fromString("testServer");
-	private static ByteSequence value = ByteSequence.fromString("testNode3");
+	private static ByteSequence value = ByteSequence.fromString("testNode2");
 	private static Client client = Client.builder().endpoints("http://localhost:2379").build();
 	private static KV kvClient = client.getKVClient();
 	private static Lease leaseClient = client.getLeaseClient();
@@ -42,7 +41,7 @@ public class App3
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		while (true) {
 			Thread.sleep(1000L);
-			System.out.println("Hello! I'm Node3. Now is "+simpleDateFormat.format(new Date(System.currentTimeMillis())));
+			System.out.println("Hello! I'm Node2. Now is "+simpleDateFormat.format(new Date(System.currentTimeMillis())));
 		}
 	}
 	
@@ -50,10 +49,9 @@ public class App3
     	public void run() {
     		try {
     			while (true) {
-    				Thread.sleep(3000L);
+    				Thread.sleep(1500L);
     				leaseClient.keepAliveOnce(leaseId);
     			}
-    			
     		} catch (InterruptedException e) {
     			e.printStackTrace();
     		}
@@ -61,23 +59,15 @@ public class App3
     }
 	
 	public static void main( String[] args ) throws InterruptedException, ExecutionException, ParseException{
-//    	if (kvClient.get(key).get().getCount() != 0  ) {
-//    		System.out.println("I'm Node3. Begin watching!");
-//    		myWatch();
-//    	}
-//    	System.out.println("I'm Node3. I'm going to work！");
-//    	LeaseGrantResponse lease = leaseClient.grant(6L).get(); 
-//		kvClient.put(key, value,PutOption.newBuilder().withLeaseId(lease.getID()).build());
 		do {
 			if (kvClient.get(key).get().getCount() != 0  ) {
-	    		System.out.println("I'm Node3. Begin watching!");
+	    		System.out.println("I'm Node2. Begin watching!");
 	    		myWatch();
 	    	}
-	    	System.out.println("I'm Node3. I'm going to work！");
-	    	Thread.sleep(40L);
+	    	System.out.println("I'm Node2. I'm going to work！");
+	    	Thread.sleep(20L);
 	    	if (kvClient.get(key).get().getCount() != 0 ) continue;
-	    	LeaseGrantResponse lease = leaseClient.grant(6L).get();
-	    	leaseId =lease.getID();
+	    	leaseId =leaseClient.grant(3L).get().getID();
 			kvClient.put(key, value, PutOption.newBuilder().withLeaseId(leaseId).build());
 			Thread.sleep(20L);
     	} while (kvClient.get(key).get().getCount() == 0 || !kvClient.get(key).get().getKvs().get(0).getValue().equals(value));

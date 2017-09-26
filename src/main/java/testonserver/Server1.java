@@ -1,4 +1,4 @@
-package etcdtest.etcdtest;
+package testonserver;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -9,16 +9,15 @@ import com.coreos.jetcd.Client;
 import com.coreos.jetcd.KV;
 import com.coreos.jetcd.Lease;
 import com.coreos.jetcd.Watch.Watcher;
-import com.coreos.jetcd.options.WatchOption;
 import com.coreos.jetcd.data.ByteSequence;
-import com.coreos.jetcd.lease.LeaseGrantResponse;
 import com.coreos.jetcd.options.PutOption;
+import com.coreos.jetcd.options.WatchOption;
 
-public class App2 
+public class Server1 
 {
 	private static ByteSequence key = ByteSequence.fromString("testServer");
-	private static ByteSequence value = ByteSequence.fromString("testNode2");
-	private static Client client = Client.builder().endpoints("http://localhost:2379").build();
+	private static ByteSequence value = ByteSequence.fromString("testNode1");
+	private static Client client = Client.builder().endpoints("http://192.168.1.128:2379", "http://192.168.1.129:2379", "http://192.168.1.130:2379").build();
 	private static KV kvClient = client.getKVClient();
 	private static Lease leaseClient = client.getLeaseClient();
 	private static Long leaseId;
@@ -42,7 +41,7 @@ public class App2
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		while (true) {
 			Thread.sleep(1000L);
-			System.out.println("Hello! I'm Node2. Now is "+simpleDateFormat.format(new Date(System.currentTimeMillis())));
+			System.out.println("Hello! I'm Node1. Now is "+simpleDateFormat.format(new Date(System.currentTimeMillis())));
 		}
 	}
 	
@@ -50,7 +49,7 @@ public class App2
     	public void run() {
     		try {
     			while (true) {
-    				Thread.sleep(3000L);
+    				Thread.sleep(1500L);
     				leaseClient.keepAliveOnce(leaseId);
     			}
     		} catch (InterruptedException e) {
@@ -60,26 +59,17 @@ public class App2
     }
 	
 	public static void main( String[] args ) throws InterruptedException, ExecutionException, ParseException{
-//		if (kvClient.get(key).get().getCount() != 0  ) {
-//    		System.out.println("I'm Node2. Begin watching!");
-//    		myWatch();
-//    	}
-//    	System.out.println("I'm Node2. I'm going to work！");
-//    	LeaseGrantResponse lease = leaseClient.grant(6L).get(); 
-//		kvClient.put(key, value,PutOption.newBuilder().withLeaseId(lease.getID()).build());
 		do {
 			if (kvClient.get(key).get().getCount() != 0  ) {
-	    		System.out.println("I'm Node2. Begin watching!");
+	    		System.out.println("I'm Node1. Begin watching!");
 	    		myWatch();
 	    	}
-	    	System.out.println("I'm Node2. I'm going to work！");
-	    	Thread.sleep(20L);
-	    	if (kvClient.get(key).get().getCount() != 0 ) continue;
-	    	LeaseGrantResponse lease = leaseClient.grant(6L).get();
-	    	leaseId =lease.getID();
+			System.out.println("I'm Node1. I'm going to work！");
+			if (kvClient.get(key).get().getCount() != 0 ) continue;
+	    	leaseId =leaseClient.grant(3L).get().getID();
 			kvClient.put(key, value, PutOption.newBuilder().withLeaseId(leaseId).build());
 			Thread.sleep(20L);
-    	} while (kvClient.get(key).get().getCount() == 0 || !kvClient.get(key).get().getKvs().get(0).getValue().equals(value));
+		} while (kvClient.get(key).get().getCount() == 0 || !kvClient.get(key).get().getKvs().get(0).getValue().equals(value));
 		myRefresh();
 		myServer();
     }
