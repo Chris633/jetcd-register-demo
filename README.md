@@ -1,3 +1,7 @@
 # jetcd-register-demo
+自制etcd服务注册demo
 
-自制注册demo 今天太饿了 先不多写了。但至少能跑起来了。。。
+* 运用:[jetcd](https://github.com/coreos/jetcd)
+
+### Note
+只是初步了解etcd，demo仅供参考！
